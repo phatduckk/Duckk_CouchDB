@@ -1,10 +1,50 @@
 <?php
 
-public class Duckk_CouchDB_Util
+class Duckk_CouchDB_Util
 {
-    static public function isValidDatabaseName($databaseName)
+    /**
+     * Check to see if a string is a valid DB name
+     *
+     * from: http://wiki.apache.org/couchdb/HTTP_database_API
+     *  A database must be named with all lowercase characters (a-z),
+     *  digits (0-9), or any of the _$()+-/ characters and must end
+     *  with a slash in the URL. The name has to start with characters.
+     *
+     * @param string $database The string to validate
+     *
+     * @return bool Whether the string is a valid db name or not
+     */
+    static public function isValidDatabaseName($database)
     {
-        return ($databaseName == urlencode(strtolower($databaseName));
+        return preg_match('/[a-z][a-z0-9_\$,\+\-\//]*\/$/');
+    }
+
+    /**
+     * "clean" a string and turn it into a valid database name
+     *
+     * This function doesn't guarantee a valid DB name. It mostly
+     * just "fixes" the / character usage. Makes sure we don't have a /
+     * at the begining and ensure that we do have one on the end
+     *
+     * @param string $database The database name to clean
+     *
+     * @return string The result of the cleaning
+     */
+    static public function cleanDatabaseName($database)
+    {
+        return trim($database, '/') . '/';
+    }
+
+    /**
+     * Crate a URI to a DB from it's name
+     *
+     * @param string $database The name of the DB
+     *
+     * @return string The URI
+     */
+    static public function makeDatabaseURI($database)
+    {
+        return '/' . self::cleanDatabaseName($database);
     }
 }
 
