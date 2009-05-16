@@ -25,9 +25,12 @@ class Duckk_CouchDB
     /**
      * Create a database
      *
-     * @param bool $returnSimpleStatus Whether to get the raw response
+     * @param bool   $returnCouchsResponse Whether you want the response from Couch or a
+     *  simplified return (aka: true). Set this to TRUE to get the raw Cuch response
      *
-     * @return array The status of the
+     * @return mixed If $returnCouchsResponse === true then you'll get the unserialized
+     *  JSON response from Couch. Otherwise you'll get TRUE on success or an exception
+     *  upon failure
      */
     public function createDatabase($database, $returnCouchsResponse = false)
     {
@@ -50,6 +53,18 @@ class Duckk_CouchDB
         }
     }
 
+    /**
+     * Delete a database
+     *
+     * @param string $database The name of the DB
+     *
+     * @param bool   $returnCouchsResponse Whether you want the response from Couch or a
+     *  simplified return (aka: true). Set this to TRUE to get the raw Cuch response
+     *
+     * @return mixed If $returnCouchsResponse === true then you'll get the unserialized
+     *  JSON response from Couch. Otherwise you'll get TRUE on success or an exception
+     *  upon failure
+     */
     public function deleteDatabase($database, $returnCouchsResponse = false)
     {
         $status = $this->connection->delete(
@@ -71,6 +86,13 @@ class Duckk_CouchDB
         }
     }
 
+    /**
+     * Get info about a DB
+     *
+     * @param string $database The name of the DB
+     *
+     * @return stdClass
+     */
     public function getDatabaseInfo($database)
     {
         $status = $this->connection->get(
