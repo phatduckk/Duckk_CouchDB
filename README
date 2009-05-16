@@ -8,7 +8,7 @@ SETUP:
 * download this package and make sure you have the Duckk_CouchDB/ folder from Duckk_CouchDB in your include_path
     * download this from http://github.com/phatduckk/Duckk_CouchDB/tree/master
     
-You include path will look something like
+You include_path will look something like
     PEAR/
     YourIncPath/
     Duckk_CouchDB/
