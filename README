@@ -1,6 +1,18 @@
 CouchDB Library coming soon...
 
-DEPENDENCY:
+SETUP:
 
-This library uses the SimpleHttp Library for HTTP connections.
-Please download that from http://github.com/phatduckk/simple_http_socket/tree/master
+* install CouchDB & start it ;-)
+* make sure you have the Duckk_SimpleHTTP/ folder from Duckk_SimpleHttp in your include_path
+    * download that from http://github.com/phatduckk/Duckk_SimpleHTTP/tree/master
+* download this package and make sure you have the Duckk_CouchDB/ folder from Duckk_CouchDB in your include_path
+    * download this from http://github.com/phatduckk/Duckk_CouchDB/tree/master
+    
+You include path will look something like
+    PEAR/
+    YourIncPath/
+    Duckk_CouchDB/
+    Duckk_SimpleHTTP/
+    
+echo get_include_path();
+// someStuff:Duckk_CouchDB:Duckk_SimpleHTTP:YourIncPath:PEAR
