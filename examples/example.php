@@ -24,6 +24,9 @@ try {
     print_r($e);
 }
 
+echo "------------Compact $randomDBName --------------\n";
+var_dump($couchdb->compactDatabase("$randomDBName"));
+
 echo "------------ Get info for $randomDBName --------------\n";
 print_r($couchdb->getDatabaseInfo($randomDBName));
 

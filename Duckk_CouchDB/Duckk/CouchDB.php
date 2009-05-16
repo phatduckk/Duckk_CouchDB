@@ -5,11 +5,52 @@ require_once 'Duckk/CouchDB/Util.php';
 
 class Duckk_CouchDB
 {
+    /**
+     * Connection to CouchDB
+     *
+     * @var Duckk_CouchDB_Connection
+     */
     private $connection = null;
 
-    public function __construct()
+    /**
+     * Whether the method calls to this class should return the unserialized JSON (an stdClass)
+     * from CouchDB or an "interpretted" PHP value.
+     *
+     * When set to TRUE a successful call to $this->createDatabase('foo') will
+     * return an stdClass like:
+     *
+     * <pre>
+     * object(stdClass)#3 (1) {
+     *  ["ok"]=>
+     *     bool(true)
+     * }
+     * </pre>
+     *
+     * When set to FALSE the class will "examine" the response and, in the case of
+     * the example above (a successful call), return a bool TRUE.
+     *
+     * Upon a failed request the class will return the unserialized JSON (an stdClass)
+     * from CouchDB if $this->returnJsonFromCouch === TRUE. If $this->returnJsonFromCouch
+     * === FALSE then the class will throw an exception instead.
+     *
+     * @var bool
+     */
+    public $returnJsonFromCouch = false;
+
+    /**
+     * Constructor
+     *
+     * @param string $host      The CouchDB server's hostname or IP
+     * @param int    $port      The CouchDB server's port
+     * @param string $keepalive The value for the connection's Keep-Alive request header
+     *
+     * @return void
+     */
+    public function __construct($host = Duckk_CouchDB_Connection::DEFAULT_HOST,
+        $port = Duckk_CouchDB_Connection::DEFAULT_PORT,
+        $keepalive = Duckk_CouchDB_Connection::DEFAULT_KEEPALIVE)
     {
-        $this->connection = new Duckk_CouchDB_Connection();
+        $this->connection = new Duckk_CouchDB_Connection($host, $port, $keepalive);
     }
 
     /**
@@ -25,21 +66,15 @@ class Duckk_CouchDB
     /**
      * Create a database
      *
-     * @param bool   $returnCouchsResponse Whether you want the response from Couch or a
-     *  simplified return (aka: true). Set this to TRUE to get the raw Cuch response
-     *
-     * @return mixed If $returnCouchsResponse === true then you'll get the unserialized
-     *  JSON response from Couch. Otherwise you'll get TRUE on success or an exception
-     *  upon failure
      */
-    public function createDatabase($database, $returnCouchsResponse = false)
+    public function createDatabase($database)
     {
         $status = $this->connection->put(
             Duckk_CouchDB_Util::makeDatabaseURI($database)
         );
 
         // return the unserialized json from couch
-        if ($returnCouchsResponse) {
+        if ($this->returnJsonFromCouch) {
             return $status;
         }
 
@@ -57,22 +92,15 @@ class Duckk_CouchDB
      * Delete a database
      *
      * @param string $database The name of the DB
-     *
-     * @param bool   $returnCouchsResponse Whether you want the response from Couch or a
-     *  simplified return (aka: true). Set this to TRUE to get the raw Cuch response
-     *
-     * @return mixed If $returnCouchsResponse === true then you'll get the unserialized
-     *  JSON response from Couch. Otherwise you'll get TRUE on success or an exception
-     *  upon failure
      */
-    public function deleteDatabase($database, $returnCouchsResponse = false)
+    public function deleteDatabase($database)
     {
         $status = $this->connection->delete(
             Duckk_CouchDB_Util::makeDatabaseURI($database)
         );
 
         // return the unserialized json from couch
-        if ($returnCouchsResponse) {
+        if ($this->returnJsonFromCouch) {
             return $status;
         }
 
@@ -84,6 +112,23 @@ class Duckk_CouchDB
             require_once 'Duckk/CouchDB/Exception/DatabaseMissing.php';
             throw new Duckk_CouchDB_Exception_DatabaseMissing($status);
         }
+    }
+
+    /**
+     * Run compaction on a DB
+     *
+     * @param string $database Name of the DB
+     *
+     * @return stdClass Status of the request
+     */
+    public function compactDatabase($database)
+    {
+        $status = $this->connection->post(
+            Duckk_CouchDB_Util::makeDatabaseURI($database)
+            . '_compact'
+        );
+
+        return $status;
     }
 
     /**
