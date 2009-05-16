@@ -16,3 +16,30 @@ You include_path will look something like
     
 echo get_include_path();
 // someStuff:Duckk_CouchDB:Duckk_SimpleHTTP:YourIncPath:PEAR
+
+---------------------------- EXAMPLE ------------------------------
+$couchdb      = new Duckk_CouchDB();
+$randomDBName = 'testing' . md5(microtime(true));
+
+print_r($couchdb->getDatabases());
+// shows array of db names
+
+var_dump($couchdb->createDatabase($randomDBName));
+// should return TRUE assuming $randomDBName doesnt exist
+
+try {
+    $couchdb->createDatabase($randomDBName);    
+} catch (Exception $e) {
+    print_r($e);
+    // should print the exception cuz we already created $randomDBName
+}
+
+var_dump($couchdb->deleteDatabase($randomDBName));
+// should return TRUE cuz it successfully deleted $randomDBName
+
+try {
+    $couchdb->deleteDatabase($randomDBName);    
+} catch (Exception $e) {
+    print_r($e);
+    // should print the exception cuz $randomDBName no longer exists
+}
