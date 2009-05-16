@@ -65,6 +65,11 @@ class Duckk_CouchDB
             throw new Duckk_CouchDB_Exception_DatabaseMissing($status);
         }
     }
+    
+    public function getDatabaseInfo($database) 
+    {
+        return $this->connection->get('/' . trim($database, '/') . '/');
+    }
 }
 
 ?>
