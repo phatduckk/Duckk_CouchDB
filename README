@@ -1,2 +1,6 @@
 CouchDB Library coming soon...
 
+DEPENDENCY:
+
+This library uses the SimpleHttp Library for HTTP connections.
+Please download that from http://github.com/phatduckk/simple_http_socket/tree/master
