@@ -151,6 +151,122 @@ class Duckk_CouchDB
             return $status;
         }
     }
+
+    /**
+     * Get a document
+     *
+     * This method allows you to get a document and also append an arbitary set of
+     * query string paramaters to the request URI
+     *
+     * @param string $database    The name of the DB the document lives in
+     * @param string $documentId  The ID of the document
+     * @param array  $queryParams An assoc array of query string parameters
+     *
+     * @return stdClass
+     */
+    public function _getDocument($database, $documentId, array $queryParams = array())
+    {
+        $databaseURI = Duckk_CouchDB_Util::makeDatabaseURI($database);
+        $documentURI = $databaseURI . $documentId;
+        $queryString = '';
+
+        if (! empty($queryParams)) {
+            $qryParts = array();
+
+            foreach ($queryParams as $k => $v) {
+                $qryParts[] = urlencode($k) . '=' . urlencode($v);
+            }
+
+            $queryString = '?' . implode('&', $qryParts);
+        }
+
+        // TODO: deal with 404
+        $document = $this->connection->get($documentURI . $queryString);
+        return $document;
+    }
+
+    /**
+     * Get a document by ID
+     *
+     * You can optionally get a list of revisions and/or info about each revision.
+     *
+     * @param string $database        The name of the DB the document lives in
+     * @param string $documentId      The ID of the document
+     * @param bool   $getRevisionList Get the revision list too?
+     * @param bool   $getRevisionInfo Get the revision info too?
+     *
+     * @return stdClass
+     */
+    public function getDocument($database, $documentId,
+        $getRevisionList = false, $getRevisionInfo = false)
+    {
+        $qryParams = array();
+
+        if ($getRevisionList) {
+            $qryParams['revs'] = 'true';
+        }
+
+        if ($getRevisionInfo) {
+           $qryParams['revs_info'] = 'true';
+        }
+
+        return $this->_getDocument($database, $documentId, $qryParams);
+    }
+
+    /**
+     * Get a specific revision of a document
+     *
+     * You can optionally get the revision list as well.
+     *
+     * From what I can tell you cannot get a doc by revision AND ask for the revision info.
+     * Couch doesn't get pissed... it just doesn't include the _revs_info. But it does
+     * seem to return the revision list if you ask for it
+     *
+     * @param string $database        The DB name
+     * @param string $documentId      The ID of the document
+     * @param string $rev             Which revision to get
+     * @param bool   $getRevisionList Fetch the revision list too?
+     *
+     * @return stdClass The document
+     */
+    public function getDocumentRevision($database, $documentId, $rev, $getRevisionList = false)
+    {
+        $qryParams = array('rev' => $rev);
+
+        if ($getRevisionList) {
+            $qryParams['revs'] = 'true';
+        }
+
+        return $this->_getDocument($database, $documentId, $qryParams);
+    }
+
+    /**
+     * Get a list of known revisions for a document
+     *
+     * @param string $database        The DB name
+     * @param string $documentId      The ID of the document
+     *
+     * @return stdClass The document
+     */
+    public function getDocumentRevisionList($database, $documentId)
+    {
+        $resp = $this->_getDocument($database, $documentId, array('revs' => 'true'));
+        return $resp->_revs;
+    }
+
+    /**
+     * Get the revision infomrtaion of a document
+     *
+     * @param string $database   The DB name
+     * @param string $documentId The ID of the document
+     *
+     * @return stdClass The document
+     */
+    public function getDocumentRevisionInfo($database, $documentId)
+    {
+        $resp = $this->_getDocument($database, $documentId, array('revs_info' => 'true'));
+        return $resp->_revs_info;
+    }
 }
 
 ?>

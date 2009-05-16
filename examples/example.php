@@ -13,6 +13,18 @@ $couchdb = new Duckk_CouchDB();
 echo "------------LIST OF DATABASES---------------\n";
 print_r($couchdb->getDatabases());
 
+echo "------------ get my test document --------------\n";
+print_r($couchdb->getDocument('arin', 'booya'));
+
+echo "------------ get rev info for my test document --------------\n";
+print_r($couchdb->getDocumentRevisionList('arin', 'booya'));
+
+echo "------------ get rev info for my test document --------------\n";
+print_r($couchdb->getDocumentRevisionInfo('arin', 'booya'));
+
+
+exit;
+
 
 $randomDBName = 'testing' . md5(microtime(true));
 echo "------------CREATE A DB NAMED $randomDBName --------------\n";
