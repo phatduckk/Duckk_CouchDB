@@ -68,7 +68,14 @@ class Duckk_CouchDB
     
     public function getDatabaseInfo($database) 
     {
-        return $this->connection->get('/' . trim($database, '/') . '/');
+        $status = $this->connection->get('/' . trim($database, '/') . '/');
+        
+        if (isset($status->error)) {
+            require_once 'Duckk/CouchDB/Exception/DatabaseMissing.php';
+            throw new Duckk_CouchDB_Exception_DatabaseMissing($status);            
+        } else {
+            return $status;
+        }
     }
 }
 

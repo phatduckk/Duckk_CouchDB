@@ -24,11 +24,21 @@ try {
     print_r($e);
 }
 
+echo "------------ Get info for $randomDBName --------------\n";
+print_r($couchdb->getDatabaseInfo($randomDBName));
+
 echo "------------DELETE A DB NAMED $randomDBName --------------\n";
 var_dump($couchdb->deleteDatabase($randomDBName));
 echo "------------TRY TO DELETE $randomDBName again --------------\n";
 try {
     $couchdb->deleteDatabase($randomDBName);    
+} catch (Exception $e) {
+    print_r($e);
+}
+
+echo "------------ Get info for $randomDBName After deleting it --------------\n";
+try {
+    print_r($couchdb->getDatabaseInfo($randomDBName));
 } catch (Exception $e) {
     print_r($e);
 }
