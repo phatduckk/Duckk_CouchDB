@@ -2,6 +2,7 @@
 
 require_once 'Duckk/CouchDB/Connection.php';
 require_once 'Duckk/CouchDB/Util.php';
+require_once 'Duckk/CouchDB/Document.php';
 
 class Duckk_CouchDB
 {
@@ -177,12 +178,18 @@ class Duckk_CouchDB
                 $qryParts[] = urlencode($k) . '=' . urlencode($v);
             }
 
-            $queryString = '?' . implode('&', $qryParts);
+            $documentURI .= '?' . implode('&', $qryParts);
         }
 
         // TODO: deal with 404
-        $document = $this->connection->get($documentURI . $queryString);
-        return $document;
+        $response = $this->connection->get($documentURI);
+
+        if (isset($response->error)) {
+            require_once 'Duckk/CouchDB/Exception/DocumentNotFound.php';
+            throw new Duckk_CouchDB_Exception_DocumentNotFound($documentURI, $response);
+        }
+
+        return $response;
     }
 
     /**
@@ -266,6 +273,72 @@ class Duckk_CouchDB
     {
         $resp = $this->_getDocument($database, $documentId, array('revs_info' => 'true'));
         return $resp->_revs_info;
+    }
+
+    /**
+     * PUT a document.
+     *
+     * You can use this to "create" or "update" a document. If you're creating a new doc
+     * then the server assigned revision will be assigned to $doc->_rev
+     *
+     * @param string                 $database The database to put the document in to
+     * @param Duckk_CouchDB_Document $doc      The document to PUT
+     * @param bool                   $batchOK  Whether or not you want to allow batch processing on Couch
+     *                                         This should be set to FALSE for all critical data
+     *
+     * @return stdClass The response from CouchDB
+     */
+    public function putDocument($database, Duckk_CouchDB_Document &$doc, $batchOK = false)
+    {
+        if (! $doc->_rev) {
+            unset($doc->_rev);
+        }
+
+        $uri  = Duckk_CouchDB_Util::makeDatabaseURI($database)
+              . $doc->_id
+              . (($batchOK) ? '?batch=ok' : '');
+
+        $json = json_encode($doc);
+        $resp = $this->connection->put($uri, $json);
+
+        if (isset($resp->error)) {
+            require_once 'Duckk/CouchDB/Exception/UpdateConflict.php';
+            throw new Duckk_CouchDB_Exception_UpdateConflict($uri, $resp);
+        }
+
+        $doc->_rev = $resp->rev;
+
+        return $resp;
+    }
+
+    /**
+     * POST a new Document
+     *
+     * The CouchDB docs pretty much say you shouldn't use this and should use PUt instead.
+     * http://wiki.apache.org/couchdb/HTTP_Document_API
+     *
+     * If you want to create a new Document and are too lazy to try generate a unique
+     * yourself, then this will work. So, more or less it's like PUT but soley for creating
+     * a NEW document AND CouchDB will assign an ID to the document for you.
+     *
+     * The class will add the rev and id to the document you passed in
+     *
+     * @param string                 $database The DB to post the document to
+     * @param Duckk_CouchDB_Document $doc      The document to post
+     *
+     * @return stdClass
+     */
+    public function postDocument($database, Duckk_CouchDB_Document &$doc)
+    {
+        $uri  = Duckk_CouchDB_Util::makeDatabaseURI($database);
+        $json = json_encode($doc);
+        $resp = $this->connection->post($uri, $json);
+
+        // TODO: check document ID collission
+        $doc->_rev = $resp->rev;
+        $doc->_id  = $resp->id;
+
+        return $resp;
     }
 }
 

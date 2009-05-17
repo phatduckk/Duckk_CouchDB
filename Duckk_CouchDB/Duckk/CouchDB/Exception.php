@@ -2,8 +2,20 @@
 
 class Duckk_CouchDB_Exception extends Exception
 {
-    const CODE_DB_EXISTS  = 555;
-    const CODE_DB_MISSING = 556;
+    /**
+     * Error codes
+     */
+    const CODE_DB_EXISTS        = 555;
+    const CODE_DB_MISSING       = 556;
+    const CODE_DOCUMENT_NOT_FOUND = 557;
+    const CODE_DOCUMENT_UPDATE_CONFLICT = 558;
+
+    /**
+     * The errror from CouchDB
+     *
+     * @var string
+     */
+    public $error;
 
     /**
      * Create an exception based upon CouchDB's response and the type of action

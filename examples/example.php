@@ -10,11 +10,29 @@ require_once('Duckk/CouchDB.php');
 
 $couchdb = new Duckk_CouchDB();
 
+$doc = new Duckk_CouchDB_Document();
+$doc->_id = 'abcdddd' . md5(time());
+$doc->_rev = md5(time() . 'arin');
+$doc->name = 'arin';
+print_r($couchdb->postDocument('arin', $doc, true));
+
+exit;
+
+
+
+
+echo "------------ get my test document --------------\n";
+
+
+try {
+    print_r($couchdb->getDocument('arin', 'booya3'));
+} catch(Exception $e) {
+    print_r($e);
+}
+
 echo "------------LIST OF DATABASES---------------\n";
 print_r($couchdb->getDatabases());
 
-echo "------------ get my test document --------------\n";
-print_r($couchdb->getDocument('arin', 'booya'));
 
 echo "------------ get rev info for my test document --------------\n";
 print_r($couchdb->getDocumentRevisionList('arin', 'booya'));
