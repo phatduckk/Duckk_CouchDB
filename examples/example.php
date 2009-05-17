@@ -7,6 +7,10 @@
  */
 require_once('./inc.php');
 require_once('Duckk/CouchDB.php');
+require_once('Duckk/CouchDB/Util.php');
+
+print_r(Duckk_CouchDB_Util::getAttachmentInfo('/Users/arin/Downloads/SolrUpdate.php'));
+exit;
 
 $couchdb = new Duckk_CouchDB();
 

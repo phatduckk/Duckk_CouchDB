@@ -46,6 +46,43 @@ class Duckk_CouchDB_Util
     {
         return '/' . self::cleanDatabaseName($database);
     }
+
+    /**
+     * Get the info we need
+     */
+    static public function getAttachmentInfo($pathToFile, $useCurl = false)
+    {
+        $fileInfo = array(
+            'content_type' => null,
+            'data'         => null,
+            'basename'     => basename($pathToFile)
+        );
+
+        if ($useCurl || strpos($pathToFile, 'http') === 0) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $pathToFile);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            // TODO throw an exception upon curl errors
+
+            $fileInfo['data']         = curl_exec($ch);
+            $fileInfo['content_type'] = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        } else {
+            $arg = escapeshellarg($pathToFile);
+
+            $fileInfo['content_type'] = `file -I -b $arg`;
+            $fileInfo['data']         = file_get_contents($pathToFile);
+        }
+
+
+        $fileInfo['data'] = base64_encode($fileInfo['data']);
+
+        if (strstr($fileInfo['content_type'], ';')) {
+            list($fileInfo['content_type'], ) = explode(';', $fileInfo['content_type']);
+        }
+
+        return $fileInfo;
+    }
 }
 
 ?>
