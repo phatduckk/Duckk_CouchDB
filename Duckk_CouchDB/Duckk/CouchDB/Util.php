@@ -48,9 +48,19 @@ class Duckk_CouchDB_Util
     }
 
     /**
-     * Get the info we need
+     * Get the info we need for a document attachment
+     *
+     * Please NOTE: I couldn't get the FileInfo module to install. Dunno know why PECL
+     * wasn't cooperating... probabaly cuz it's jank.  So, this is a decent attempt at
+     * getting the right file info till I figure that shit out. So, getting the info
+     * for file system paths may or may not work for you. It will not work on Windows
+     * cuz I'm using a system call hack as a stop-gap for now (verified on OS X).
+     *
+     * @param string $pathToFile File system path or HTTP URI to a file
+     *
+     * @return array The necessary file info in an associative array
      */
-    static public function getAttachmentInfo($pathToFile, $useCurl = false)
+    static public function getAttachmentInfo($pathToFile)
     {
         $fileInfo = array(
             'content_type' => null,
@@ -58,28 +68,25 @@ class Duckk_CouchDB_Util
             'basename'     => basename($pathToFile)
         );
 
-        if ($useCurl || strpos($pathToFile, 'http') === 0) {
+        if (strpos($pathToFile, 'http') === 0) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $pathToFile);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-            // TODO throw an exception upon curl errors
-
             $fileInfo['data']         = curl_exec($ch);
             $fileInfo['content_type'] = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         } else {
-            $arg = escapeshellarg($pathToFile);
+            $cmd = 'file --mime -b ' . escapeshellarg($pathToFile);
 
-            $fileInfo['content_type'] = `file -I -b $arg`;
+            $fileInfo['content_type'] = trim(`$cmd`);
             $fileInfo['data']         = file_get_contents($pathToFile);
         }
-
-
-        $fileInfo['data'] = base64_encode($fileInfo['data']);
 
         if (strstr($fileInfo['content_type'], ';')) {
             list($fileInfo['content_type'], ) = explode(';', $fileInfo['content_type']);
         }
+
+        // TODO handle errors for http and fs
 
         return $fileInfo;
     }

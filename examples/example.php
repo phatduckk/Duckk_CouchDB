@@ -5,12 +5,9 @@
  *
  * Eventually this will be split into multiple files... each hilighting a different feature
  */
-require_once('./inc.php');
+require_once realpath(dirname(__FILE__)) . '/inc.php';
 require_once('Duckk/CouchDB.php');
 require_once('Duckk/CouchDB/Util.php');
-
-print_r(Duckk_CouchDB_Util::getAttachmentInfo('/Users/arin/Downloads/SolrUpdate.php'));
-exit;
 
 $couchdb = new Duckk_CouchDB();
 
@@ -18,7 +15,11 @@ $doc = new Duckk_CouchDB_Document();
 $doc->_id = 'abcdddd' . md5(time());
 $doc->_rev = md5(time() . 'arin');
 $doc->name = 'arin';
+
+$doc->addAttachmentByPath(EXAMPLE_PATH . '/peanut.jpg');
 print_r($couchdb->postDocument('arin', $doc, true));
+
+print_r($doc);
 
 exit;
 
