@@ -9,25 +9,20 @@ require_once realpath(dirname(__FILE__)) . '/inc.php';
 require_once('Duckk/CouchDB.php');
 require_once('Duckk/CouchDB/Util.php');
 
-$couchdb = new Duckk_CouchDB();
+$couchdb   = new Duckk_CouchDB();
+$randomDoc = "testing_" . substr(md5(microtime(true)), 0, 8);
 
+echo "------------ example doc put (id = $randomDoc) -------------------\n";
 $doc = new Duckk_CouchDB_Document();
-$doc->_id = 'abcdddd' . md5(time());
-$doc->_rev = md5(time() . 'arin');
-$doc->name = 'arin';
+$doc->_id = $randomDoc;
+print_r($couchdb->putDocument('arin', $doc));
 
-$doc->addAttachmentByPath(EXAMPLE_PATH . '/peanut.jpg');
-print_r($couchdb->postDocument('arin', $doc, true));
-
-print_r($doc);
+echo "------------ delete the example doc ($randomDoc) -------------------\n";
+print_r($couchdb->deleteDocument('arin', $doc->_id));
 
 exit;
 
-
-
-
 echo "------------ get my test document --------------\n";
-
 
 try {
     print_r($couchdb->getDocument('arin', 'booya3'));

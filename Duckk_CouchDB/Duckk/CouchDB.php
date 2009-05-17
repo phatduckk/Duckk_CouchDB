@@ -71,7 +71,7 @@ class Duckk_CouchDB
     public function createDatabase($database)
     {
         $status = $this->connection->put(
-            Duckk_CouchDB_Util::makeDatabaseURI($database)
+            Duckk_CouchDB_Util::makeDatabaseURI($database, null, 'application/json')
         );
 
         // return the unserialized json from couch
@@ -290,8 +290,12 @@ class Duckk_CouchDB
      */
     public function putDocument($database, Duckk_CouchDB_Document &$doc, $batchOK = false)
     {
-        if (! $doc->_rev) {
+        if (! $doc->hasRevision()) {
             unset($doc->_rev);
+        }
+
+        if (! $doc->hasAttachments()) {
+            unset($doc->_attachments);
         }
 
         $uri  = Duckk_CouchDB_Util::makeDatabaseURI($database)
@@ -299,7 +303,7 @@ class Duckk_CouchDB
               . (($batchOK) ? '?batch=ok' : '');
 
         $json = json_encode($doc);
-        $resp = $this->connection->put($uri, $json);
+        $resp = $this->connection->put($uri, $json, 'application/json');
 
         if (isset($resp->error)) {
             require_once 'Duckk/CouchDB/Exception/UpdateConflict.php';
@@ -332,13 +336,62 @@ class Duckk_CouchDB
     {
         $uri  = Duckk_CouchDB_Util::makeDatabaseURI($database);
         $json = json_encode($doc);
-        $resp = $this->connection->post($uri, $json);
+        $resp = $this->connection->post($uri, $json, 'application/json');
 
         // TODO: check document ID collission
         $doc->_rev = $resp->rev;
         $doc->_id  = $resp->id;
 
         return $resp;
+    }
+
+    /**
+     * Delete a document
+     *
+     * You can either pass in a db name with the document id, or the db name with an
+     * instance of Duckk_CouchDB_Document.
+     *
+     * If you dont pass in a Duckk_CouchDB_Document for $documentID then you have to
+     * pass in the $documentRevision as the 3rd param
+     *
+     * @param string                        $database         The name of the DB the document is in
+     * @param string|Duckk_CouchDB_Document $documentID       The document's ID or the document itself
+     * @param string                        $documentRevision The rev of the document to delete
+     *
+     * @return stdClass
+     */
+    public function deleteDocument($database, $documentID, $documentRevision = null)
+    {
+        $uri = null;
+        if ($documentID instanceof Duckk_CouchDB_Document) {
+            $uri = Duckk_CouchDB_Util::makeDatabaseURI($database)
+                 . $documentID->_id
+                 . "?rev={$documentID->_rev}";
+        } else {
+            $uri = Duckk_CouchDB_Util::makeDatabaseURI($database)
+                 . $documentID
+                 . "?rev={$documentRevision}";
+        }
+
+        $resp =  $this->connection->delete($uri);
+
+        if (isset($resp->error)) {
+            require_once 'Duckk/CouchDB/Exception/UpdateConflict.php';
+            throw new Duckk_CouchDB_Exception_UpdateConflict($uri, $resp);
+        }
+
+        return $resp;
+    }
+
+    public function putAttachment($database, $documentID,
+        $attachmentContentType, $attachmentData,
+        $documentRevision = null)
+    {
+        $uri  = Duckk_CouchDB_Util::makeDatabaseURI($database)
+              . $documentID
+              . (($documentRevision) ? "?rev={$documentRevision}" : '');
+
+        $resp = $this->connection->put($uri, $json, $attachmentContentType);
     }
 }
 

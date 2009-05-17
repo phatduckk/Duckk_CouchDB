@@ -40,9 +40,11 @@ class Duckk_CouchDB_Connection extends Duckk_SimpleHTTP_KeepAlive
         return json_decode($json);
     }
 
-    public function post($uri, $body = null)
+    public function post($uri, $body = null, $contentType = null)
     {
-        $this->addHeader('Content-Type', 'application/json');
+        if ($contentType) {
+            $this->addHeader('Content-Type', $contentType);
+        }
 
         $resp = parent::post($uri, $body);
         $json = $this->getResponseBody();
@@ -50,9 +52,11 @@ class Duckk_CouchDB_Connection extends Duckk_SimpleHTTP_KeepAlive
         return json_decode($json);
     }
 
-    public function put($uri, $body = null)
+    public function put($uri, $body = null, $contentType = null)
     {
-        $this->addHeader('Content-Type', 'application/json');
+        if ($contentType) {
+            $this->addHeader('Content-Type', $contentType);
+        }
 
         $resp = parent::put($uri, $body);
         $json = $this->getResponseBody();

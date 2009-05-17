@@ -78,6 +78,26 @@ class Duckk_CouchDB_Document
 
         return $this->_attachments[$name];
     }
+
+    /**
+     * See if there's any attachments
+     *
+     * @return bool
+     */
+    public function hasAttachments()
+    {
+        return (! empty($this->_attachments));
+    }
+
+    /**
+     * See if the document has a revision or not
+     *
+     * @return bool
+     */
+    public function hasRevision()
+    {
+        return ((bool)$this->_rev);
+    }
 }
 
 ?>
