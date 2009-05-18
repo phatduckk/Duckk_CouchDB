@@ -441,6 +441,27 @@ class Duckk_CouchDB
 
         return $resp;
     }
+
+    /**
+     * Get a list of all DB's and metadata for a databadse
+     *
+     * @param string $database Name of the database
+     *
+     * @return stdClass
+     */
+    public function getDocumentList($database)
+    {
+        $resp = $this->connection->get(
+            Duckk_CouchDB_Util::makeDatabaseURI($database) . '_all_docs'
+        );
+
+        if (isset($resp->error)) {
+            require_once 'Duckk/CouchDB/Exception/DatabaseMissing.php';
+            throw new Duckk_CouchDB_Exception_DatabaseMissing($resp);
+        } else {
+            return $resp;
+        }
+    }
 }
 
 ?>

@@ -12,6 +12,9 @@ require_once('Duckk/CouchDB/Util.php');
 $couchdb   = new Duckk_CouchDB();
 $randomDoc = "testing_" . substr(md5(microtime(true)), 0, 8);
 
+print_r($couchdb->getDocumentList('arin'));
+exit;
+
 echo "------------ example doc put (id = $randomDoc) -------------------\n";
 $doc = new Duckk_CouchDB_Document();
 $doc->_id = $randomDoc;
