@@ -17,6 +17,17 @@ $doc = new Duckk_CouchDB_Document();
 $doc->_id = $randomDoc;
 print_r($couchdb->putDocument('arin', $doc));
 
+echo "------------ test copying  -------------------\n";
+print_r(
+    $couchdb->copyDocument(
+        'arin', "testing_16bd3b77",
+        "testing_b3307897copy",
+        "12-2566465478", "1-1053805331"
+    )
+);
+
+exit;
+
 echo "------------ delete the example doc ($randomDoc) -------------------\n";
 print_r($couchdb->deleteDocument('arin', $doc->_id));
 

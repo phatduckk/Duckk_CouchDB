@@ -71,6 +71,15 @@ class Duckk_CouchDB_Connection extends Duckk_SimpleHTTP_KeepAlive
 
         return json_decode($json);
     }
+
+    public function copy($source, $destination)
+    {
+        $this->addHeader('Destination', $destination);
+        $this->doHttp('COPY', $source);
+
+        $json = $this->getResponseBody();
+        return json_decode($json);
+    }
 }
 
 

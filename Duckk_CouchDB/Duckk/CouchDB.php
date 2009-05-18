@@ -383,6 +383,17 @@ class Duckk_CouchDB
         return $resp;
     }
 
+    /**
+     * PUT an attachment
+     *
+     * @param string $database          Name of the DB
+     * @param string $documentID        ID of the document
+     * @param string $attachmentContent Type Content-Type of the attachment
+     * @param string $attachmentData    The data of the attachment
+     * @param string $documentRevision  The revision of the document
+     *
+     * @return stdClass
+     */
     public function putAttachment($database, $documentID,
         $attachmentContentType, $attachmentData,
         $documentRevision = null)
@@ -391,7 +402,44 @@ class Duckk_CouchDB
               . $documentID
               . (($documentRevision) ? "?rev={$documentRevision}" : '');
 
-        $resp = $this->connection->put($uri, $json, $attachmentContentType);
+        $resp = $this->connection->put(
+            $uri,
+            base64_encode($attachmentData),
+            $attachmentContentType
+        );
+
+        return $resp;
+    }
+
+    /**
+     * Copy a document
+     *
+     * @param string $sourceDatabase        Name of the database
+     * @param string $sourceDocumentId      The ID of the document being copied
+     * @param string $destinationDocumentId The copy's document ID
+     * @param string $destinationRevision   The revision of the copy
+     * @param string $sourceRevision        The revision of the source document
+     *
+     * @return stdClass
+     */
+    public function copyDocument($sourceDatabase, $sourceDocumentId,
+        $destinationDocumentId, $destinationRevision = null, $sourceRevision = null)
+    {
+        $uri  = Duckk_CouchDB_Util::makeDatabaseURI($sourceDatabase)
+              . $sourceDocumentId
+              . (($sourceRevision) ? "?rev={$sourceRevision}" : '');
+
+        $destinationURI = $destinationDocumentId
+            . (($destinationRevision) ? "?rev={$destinationRevision}" : '');
+
+        $resp = $this->connection->copy($uri, $destinationURI);
+
+        if (isset($resp->error)) {
+            require_once 'Duckk/CouchDB/Exception/UpdateConflict.php';
+            throw new Duckk_CouchDB_Exception_UpdateConflict($uri, $resp);
+        }
+
+        return $resp;
     }
 }
 
