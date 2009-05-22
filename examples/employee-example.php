@@ -48,10 +48,11 @@ p("Get Arin's Data after title change", $couchdb->getDocument($database, 'employ
 // now create a view
 $designDoc = new Duckk_CouchDB_DesignDocument();
 $designDoc->setId('empData');
-$designDoc->addView(
-    'all',
-    'function(doc) emit(null, doc)'
-);
+$designDoc->addView('all', 'function(doc) { emit(null, doc.salary); }');
+$designDoc->addView('totalPayroll', 
+    'function(doc) { emit(null, doc.salary); }', 
+    'function(name, salary) { return sum(salary) }'
+);    
 
 // PUT the view
 $resp = $couchdb->putDocument($database, $designDoc);
@@ -59,9 +60,13 @@ p("PUT the design document", $resp);
 
 // run the "all" view we just put
 $viewResult = $couchdb->getDocument($database, $designDoc->_id . '/_view/all');
-p("Result of the 'ALL' view", $resp);
+p("Result of the 'ALL' view", $viewResult);
+
+// run the "averageSalary" view we just put
+$viewResult = $couchdb->getDocument($database, $designDoc->_id . '/_view/totalPayroll');
+p("Result of the 'totalPayroll' view", $viewResult);
 
 // clean up after ourselves and delete the DB
-//$delete = $couchdb->deleteDatabase($database);
-//p("deleted database: $database", $db);
+$delete = $couchdb->deleteDatabase($database);
+p("deleted database: $database", $db);
 ?>
