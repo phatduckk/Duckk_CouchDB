@@ -62,7 +62,7 @@ p("PUT the design document", $resp);
 $viewResult = $couchdb->getDocument($database, $designDoc->_id . '/_view/all');
 p("Result of the 'ALL' view", $viewResult);
 
-// run the "averageSalary" view we just put
+// run the "totalPayroll" view we just put
 $viewResult = $couchdb->getDocument($database, $designDoc->_id . '/_view/totalPayroll');
 p("Result of the 'totalPayroll' view", $viewResult);
 
