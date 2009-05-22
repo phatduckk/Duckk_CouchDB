@@ -3,6 +3,7 @@
 require_once 'Duckk/CouchDB/Connection.php';
 require_once 'Duckk/CouchDB/Util.php';
 require_once 'Duckk/CouchDB/Document.php';
+require_once 'Duckk/CouchDB/QueryOptions.php';
 
 class Duckk_CouchDB
 {
@@ -70,23 +71,9 @@ class Duckk_CouchDB
      */
     public function createDatabase($database)
     {
-        $status = $this->connection->put(
+        return $this->connection->put(
             Duckk_CouchDB_Util::makeDatabaseURI($database, null, 'application/json')
         );
-
-        // return the unserialized json from couch
-        if ($this->returnJsonFromCouch) {
-            return $status;
-        }
-
-        // return php-ish values
-
-        if (isset($status->ok) && $status->ok == 1) {
-            return true;
-        } else {
-            require_once 'Duckk/CouchDB/Exception/DatabaseExists.php';
-            throw new Duckk_CouchDB_Exception_DatabaseExists($status);
-        }
     }
 
     /**
@@ -96,23 +83,9 @@ class Duckk_CouchDB
      */
     public function deleteDatabase($database)
     {
-        $status = $this->connection->delete(
+        return $this->connection->delete(
             Duckk_CouchDB_Util::makeDatabaseURI($database)
         );
-
-        // return the unserialized json from couch
-        if ($this->returnJsonFromCouch) {
-            return $status;
-        }
-
-        // return php-ish values
-
-        if (isset($status->ok) && $status->ok == 1) {
-            return true;
-        } else {
-            require_once 'Duckk/CouchDB/Exception/DatabaseMissing.php';
-            throw new Duckk_CouchDB_Exception_DatabaseMissing($status);
-        }
     }
 
     /**
@@ -141,16 +114,9 @@ class Duckk_CouchDB
      */
     public function getDatabaseInfo($database)
     {
-        $status = $this->connection->get(
+        return $this->connection->get(
             Duckk_CouchDB_Util::makeDatabaseURI($database)
         );
-
-        if (isset($status->error)) {
-            require_once 'Duckk/CouchDB/Exception/DatabaseMissing.php';
-            throw new Duckk_CouchDB_Exception_DatabaseMissing($status);
-        } else {
-            return $status;
-        }
     }
 
     /**
@@ -181,15 +147,7 @@ class Duckk_CouchDB
             $documentURI .= '?' . implode('&', $qryParts);
         }
 
-        // TODO: deal with 404
-        $response = $this->connection->get($documentURI);
-
-        if (isset($response->error)) {
-            require_once 'Duckk/CouchDB/Exception/DocumentNotFound.php';
-            throw new Duckk_CouchDB_Exception_DocumentNotFound($documentURI, $response);
-        }
-
-        return $response;
+        return $this->connection->get($documentURI);
     }
 
     /**
@@ -258,7 +216,9 @@ class Duckk_CouchDB
     public function getDocumentRevisionList($database, $documentId)
     {
         $resp = $this->_getDocument($database, $documentId, array('revs' => 'true'));
-        return $resp->_revs;
+        return (isset($resp->_revs))
+            ? $resp->_revs
+            : null;
     }
 
     /**
@@ -272,7 +232,9 @@ class Duckk_CouchDB
     public function getDocumentRevisionInfo($database, $documentId)
     {
         $resp = $this->_getDocument($database, $documentId, array('revs_info' => 'true'));
-        return $resp->_revs_info;
+        return (isset($resp->_revs_info))
+            ? $resp->_revs_info
+            : null;
     }
 
     /**
@@ -305,11 +267,6 @@ class Duckk_CouchDB
         $json = json_encode($doc);
         $resp = $this->connection->put($uri, $json, 'application/json');
 
-        if (isset($resp->error)) {
-            require_once 'Duckk/CouchDB/Exception/UpdateConflict.php';
-            throw new Duckk_CouchDB_Exception_UpdateConflict($uri, $resp);
-        }
-
         $doc->_rev = $resp->rev;
 
         return $resp;
@@ -338,7 +295,6 @@ class Duckk_CouchDB
         $json = json_encode($doc);
         $resp = $this->connection->post($uri, $json, 'application/json');
 
-        // TODO: check document ID collission
         $doc->_rev = $resp->rev;
         $doc->_id  = $resp->id;
 
@@ -373,14 +329,7 @@ class Duckk_CouchDB
                  . "?rev={$documentRevision}";
         }
 
-        $resp =  $this->connection->delete($uri);
-
-        if (isset($resp->error)) {
-            require_once 'Duckk/CouchDB/Exception/UpdateConflict.php';
-            throw new Duckk_CouchDB_Exception_UpdateConflict($uri, $resp);
-        }
-
-        return $resp;
+        return $this->connection->delete($uri);
     }
 
     /**
@@ -432,14 +381,7 @@ class Duckk_CouchDB
         $destinationURI = $destinationDocumentId
             . (($destinationRevision) ? "?rev={$destinationRevision}" : '');
 
-        $resp = $this->connection->copy($uri, $destinationURI);
-
-        if (isset($resp->error)) {
-            require_once 'Duckk/CouchDB/Exception/UpdateConflict.php';
-            throw new Duckk_CouchDB_Exception_UpdateConflict($uri, $resp);
-        }
-
-        return $resp;
+        return $this->connection->copy($uri, $destinationURI);
     }
 
     /**
@@ -449,18 +391,29 @@ class Duckk_CouchDB
      *
      * @return stdClass
      */
-    public function getDocumentList($database)
+    public function getAllDocuments($database, Duckk_CouchDB_QueryOptions $queryOptions = null)
     {
-        $resp = $this->connection->get(
-            Duckk_CouchDB_Util::makeDatabaseURI($database) . '_all_docs'
-        );
+        $uri = Duckk_CouchDB_Util::makeDatabaseURI($database) . '_all_docs';
+        $qry = ($queryOptions) ? $queryOptions->getQueryString() : '';
 
-        if (isset($resp->error)) {
-            require_once 'Duckk/CouchDB/Exception/DatabaseMissing.php';
-            throw new Duckk_CouchDB_Exception_DatabaseMissing($resp);
-        } else {
-            return $resp;
+        if ($qry) {
+            $uri .= "?{$ary}";
         }
+
+        return $this->connection->get($uri);
+    }
+
+    public function getAllDocumentsBySequence($database,
+        Duckk_CouchDB_QueryOptions $queryOptions = null)
+    {
+        $uri = Duckk_CouchDB_Util::makeDatabaseURI($database) . 'all_docs_by_seq';
+        $qry = ($queryOptions) ? $queryOptions->getQueryString() : '';
+
+        if ($qry) {
+            $uri .= "?{$ary}";
+        }
+
+        return $this->connection->get($uri);
     }
 }
 

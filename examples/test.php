@@ -12,8 +12,8 @@ require_once('Duckk/CouchDB/Util.php');
 $couchdb   = new Duckk_CouchDB();
 $randomDoc = "testing_" . substr(md5(microtime(true)), 0, 8);
 
-print_r($couchdb->getDocumentList('arin'));
-exit;
+print_r($couchdb->getAllDocuments('arin'));
+print_r($couchdb->getAllDocumentsBySequence('arin'));
 
 echo "------------ example doc put (id = $randomDoc) -------------------\n";
 $doc = new Duckk_CouchDB_Document();
@@ -29,20 +29,14 @@ print_r(
     )
 );
 
-exit;
 
 echo "------------ delete the example doc ($randomDoc) -------------------\n";
 print_r($couchdb->deleteDocument('arin', $doc->_id));
 
-exit;
 
 echo "------------ get my test document --------------\n";
 
-try {
-    print_r($couchdb->getDocument('arin', 'booya3'));
-} catch(Exception $e) {
-    print_r($e);
-}
+print_r($couchdb->getDocument('arin', 'booya3'));
 
 echo "------------LIST OF DATABASES---------------\n";
 print_r($couchdb->getDatabases());
@@ -55,18 +49,11 @@ echo "------------ get rev info for my test document --------------\n";
 print_r($couchdb->getDocumentRevisionInfo('arin', 'booya'));
 
 
-exit;
-
-
 $randomDBName = 'testing' . md5(microtime(true));
 echo "------------CREATE A DB NAMED $randomDBName --------------\n";
 var_dump($couchdb->createDatabase("$randomDBName"));
 echo "------------TRY TO CREATE $randomDBName again --------------\n";
-try {
-    $couchdb->createDatabase($randomDBName);
-} catch (Exception $e) {
-    print_r($e);
-}
+$couchdb->createDatabase($randomDBName);
 
 echo "------------Compact $randomDBName --------------\n";
 var_dump($couchdb->compactDatabase("$randomDBName"));
@@ -77,17 +64,9 @@ print_r($couchdb->getDatabaseInfo($randomDBName));
 echo "------------DELETE A DB NAMED $randomDBName --------------\n";
 var_dump($couchdb->deleteDatabase($randomDBName));
 echo "------------TRY TO DELETE $randomDBName again --------------\n";
-try {
-    $couchdb->deleteDatabase($randomDBName);
-} catch (Exception $e) {
-    print_r($e);
-}
+$couchdb->deleteDatabase($randomDBName);
 
 echo "------------ Get info for $randomDBName After deleting it --------------\n";
-try {
-    print_r($couchdb->getDatabaseInfo($randomDBName));
-} catch (Exception $e) {
-    print_r($e);
-}
+print_r($couchdb->getDatabaseInfo($randomDBName));
 
 ?>

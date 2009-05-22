@@ -11,4 +11,10 @@ $parts = array(
 );
 
 set_include_path(implode(PATH_SEPARATOR, $parts));
+
+function p($label, $data) {
+    echo "--------------------- $label ---------------------\n";
+    print_r($data);
+    echo "\n\n";
+}
 ?>
