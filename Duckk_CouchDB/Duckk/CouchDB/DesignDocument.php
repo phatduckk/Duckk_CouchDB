@@ -31,6 +31,11 @@ class Duckk_CouchDB_DesignDocument extends Duckk_CouchDB_Document
      * @var array
      */
     public $views = array();
+    
+    /**
+     * Whether this is a temporary view or not
+     */
+    public $isTemporary = false;
 
     /**
      * Add a view

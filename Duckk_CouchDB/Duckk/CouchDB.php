@@ -415,6 +415,36 @@ class Duckk_CouchDB
 
         return $this->connection->get($uri);
     }
+    
+    /**
+     * PUT a design document
+     *
+     * @param string                       $database The DB the view belongs to
+     * @param Duckk_CouchDB_DesignDocument The view document
+     *
+     * @return stdClass The unserialized response from CouchDB
+     */
+    public function putDesignDocument($database, Duckk_CouchDB_DesignDocument &$doc)
+    {
+        return $this->putDocument($database, $doc);
+    }
+    
+    /**
+     * GET the result of a view
+     *
+     * @param string $database         Name of the DB
+     * @param string $designDocumentID ID of the design document
+     * @param string $viewName         The name of the view to run
+     *
+     * @return stdClass The response from CouchDB
+     */
+    public function getView($database, $designDocumentID, $viewName)
+    {
+        $viewName         = preg_replace('/^_view\//', '', trim($viewName, '/'));
+        $designDocumentID = preg_replace('/^_design\//', '', trim($designDocumentID, '/'));
+        
+        return $this->getDocument($database, "_design/{$designDocumentID}/_view/{$viewName}");
+    }
 }
 
 ?>

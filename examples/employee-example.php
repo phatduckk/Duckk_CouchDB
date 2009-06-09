@@ -50,7 +50,7 @@ $designDoc = new Duckk_CouchDB_DesignDocument();
 $designDoc->setId('empData');
 $designDoc->addView('all', 'function(doc) { emit(null, doc.salary); }');
 $designDoc->addView('totalPayroll', 
-    'function(doc) { emit(null, doc.salary); }', 
+    'function(doc) { emit("salary", doc.salary); }', 
     'function(name, salary) { return sum(salary) }'
 );    
 
