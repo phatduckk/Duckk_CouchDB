@@ -415,7 +415,7 @@ class Duckk_CouchDB
 
         return $this->connection->get($uri);
     }
-    
+
     /**
      * PUT a design document
      *
@@ -428,7 +428,7 @@ class Duckk_CouchDB
     {
         return $this->putDocument($database, $doc);
     }
-    
+
     /**
      * GET the result of a view
      *
@@ -442,8 +442,23 @@ class Duckk_CouchDB
     {
         $viewName         = preg_replace('/^_view\//', '', trim($viewName, '/'));
         $designDocumentID = preg_replace('/^_design\//', '', trim($designDocumentID, '/'));
-        
+
         return $this->getDocument($database, "_design/{$designDocumentID}/_view/{$viewName}");
+    }
+
+    public function replicate($sourceDBName, $targetDB)
+    {
+        $data = array(
+            'source' => $sourceDBName,
+            'target' => $targetDB
+        );
+
+        $status = $this->connection->post(
+            Duckk_CouchDB_Util::makeDatabaseURI('/_replicate'),
+            json_encode($data)
+        );
+
+        return $status;
     }
 }
 
