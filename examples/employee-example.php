@@ -67,9 +67,7 @@ $viewResult = $couchdb->getDocument($database, $designDoc->_id . '/_view/totalPa
 p("Result of the 'totalPayroll' view", $viewResult);
 
 // clean up after ourselves and delete the DB
-//$delete = $couchdb->deleteDatabase($database);
-//p("deleted database: $database", $db);
+$delete = $couchdb->deleteDatabase($database);
+p("deleted database: $database", $db);
 
-$res = $couchdb->replicate("$database", "replicateddb");
-p("replication", $res);
 ?>
